@@ -1,0 +1,6 @@
+version : '3.0'
+services:
+        sshd1:   
+                image: ubuntu:16.04
+                ports:
+                 - "11001:22"
