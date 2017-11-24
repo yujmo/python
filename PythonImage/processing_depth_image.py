@@ -8,18 +8,22 @@
 
 height: 424
 width:  512
+320 240
 """
-
 import os
 import cv2
+import scipy.io as scio
+import matplotlib.image as mpimg
 
 def eachFile(filepath):
     return [os.path.join('%s%s' % (filepath,allDir)) for allDir in os.listdir(filepath)]
 
 def cutPicture(picture_read_path):
-    image = cv2.imread(picture_read_path)[0:385,150:475] #height,width
-    cv2.imwrite(picture_read_path.replace("depth","results"),image)
+    image = mpimg.imread(picture_read_path)[0:380,96:416]
+    #image = cv2.imread(picture_read_path)[0:380,96:416] #height,width
+    scio.savemat(picture_read_path.replace("depth","results").replace("png","mat"),{'dict':image})
 
 if __name__ == '__main__':
     depth_pictures = eachFile('/root/depth/')
-    [cutPicture(x) for x in depth_pictures]
+    #[cutPicture(x) for x in depth_pictures]
+    cutPicture(depth_pictures[0])
