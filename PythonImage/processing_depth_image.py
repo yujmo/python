@@ -15,15 +15,29 @@ import cv2
 import scipy.io as scio
 import matplotlib.image as mpimg
 
+h_min = 40 #40-68
+h_max = 70
+f_min = 60 #62-68
+f_max = 70
+
 def eachFile(filepath):
     return [os.path.join('%s%s' % (filepath,allDir)) for allDir in os.listdir(filepath)]
 
+def bgAlt(value):
+    if (value < h_min) or (value > h_max):
+        return 0
+    else:
+        value = float(value-h_min)*255/(h_max-h_min);
+        return int(value)
+
 def cutPicture(picture_read_path):
-    image = mpimg.imread(picture_read_path)[0:380,96:416]
-    #image = cv2.imread(picture_read_path)[0:380,96:416] #height,width
-    scio.savemat(picture_read_path.replace("depth","results").replace("png","mat"),{'dict':image})
+    image = cv2.imread(picture_read_path,0)[0:380,96:416] #height,width
+    height,width = image.shape
+    im_mat = [bgAlt(image[x][y]) for x in range(height) for y in range(width)]
+    scio.savemat(picture_read_path.replace("depth","test_mat").replace("png","mat"),{'dict':im_mat})
+    #scio.savemat(picture_read_path.replace("depth","results").replace("png","mat"),{'dict':im_mat})
 
 if __name__ == '__main__':
     depth_pictures = eachFile('/root/depth/')
-    #[cutPicture(x) for x in depth_pictures]
-    cutPicture(depth_pictures[0])
+    [cutPicture(x) for x in depth_pictures]
+    #cutPicture(depth_pictures[0])
