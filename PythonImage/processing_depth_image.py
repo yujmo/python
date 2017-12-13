@@ -32,7 +32,7 @@ def bgAlt(value):
         return np.uint8(value)
 
 def cutPicture(picture_read_path):
-    image = cv2.imread(picture_read_path,0)[0:380,96:416] #height,width
+    image = cv2.imread(picture_read_path,0)[0:380,56:466] #height,width
     height,width = image.shape
     im_mat = np.zeros((height,width),dtype=np.uint8)
     #[im_mat[x][y]=bgAlt(image[x][y]) for x in range(0,height) for y in range(0,width)]
