@@ -1,0 +1,106 @@
+* Redis 事物性
+- cas全称是compare and set，是一种典型的事务操作
+
+- 事务就是为了存取数据库中同一数据时不破坏操作的隔离性和原子性，从而保证数据的一致性。
+
+  + 一般数据库，比如MySql是如何保证数据一致性的呢，主要是加锁，悲观锁。
+
+  + 比如在访问数据库某条数据的时候，会用SELECT FOR UPDATE ，这就会对这条数据进行加锁，直到事务被提交（COMMIT），或者回滚（ROLLBACK）。
+
+  + 如果此时，有其他事务对被加锁的数据进行写入，那么该事务将会被阻塞，直到第一个事务完成为止。
+
+- 缺点在于：持有锁的事务运行越慢，等待解锁的事务阻塞时间就越长，并且容易产生死锁。
+
+
+
+* 本文案例：
+- 维护一个值，如果这个值小于当前时间，则设置为当前时间；如果这个值大于当前时间，
+  则设置为当前时间+30。
+
+
+* 代码演示
+** py-redis本身自带的事务操作  乐观锁
+#+BEGIN_SRC python
+class CasNormal(object):
+  def __init__(self, host, key):
+    self.r = redis.Redis(host)
+    self.key = key
+    if not self.r.exists(self.key):
+      self.r.set(self.key, 0)
+
+  def inc(self):
+    with self.r.pipeline() as pipe:
+      while True:
+        try:
+          #监视一个key，如果在执行期间被修改了，会抛出WatchError
+          pipe.watch(self.key)
+          next_count = 30 + int(pipe.get(self.key))
+          pipe.multi()
+          if next_count < int(time.time()):
+            next_count = int(time.time())
+          pipe.set(self.key, next_count)
+          pipe.execute()
+          return next_count
+        except WatchError:
+          continue
+        finally:
+          pipe.reset()
+#+END_SRC
+
+
+** 基于Redis的悲观锁
+
+#+BEGIN_SRC python
+lock_conn = redis.Redis("localhost")
+
+class CasLock(object):
+  def __init__(self, host, key):
+    self.r = redis.Redis(host)
+    self.key = key
+    if not self.r.exists(self.key):
+      self.r.set(self.key, 0)
+
+  @synchronized(lock_conn, "lock", 10)
+  def inc(self):
+    next_count = 30 + int(self.r.get(self.key))
+    if next_count < int(time.time()):
+      next_count = int(time.time())
+    self.r.set(self.key, next_count)
+    return next_count
+#+END_SRC
+
+
+
+** 基于Redis的LUA脚本
+#+BEGIN_SRC python
+class CasLua(object):
+  def __init__(self, host, key):
+    self.r = redis.Redis(host)
+    self.key = key
+    if not self.r.exists(self.key):
+      self.r.set(self.key, 0)
+    self._lua = self.r.register_script("""
+    local next_count = redis.call('get',KEYS[1]) + ARGV[1]
+    ARGV[2] = tonumber(ARGV[2])
+    if next_count < ARGV[2] then
+      next_count = ARGV[2]
+    end
+    redis.call('set',KEYS[1],next_count)
+    return tostring(next_count)
+        """)
+
+  def inc(self):
+    return int(self._lua([self.key], [30, int(time.time())]))
+#+END_SRC
+
+
+* 性能测试
+       optimistic Lock   pessimistic lock  lua
+1thread       0.43            0.71        0.35
+5thread       5.80            3.10        0.62
+10thread      17.80           5.60        1.30
+50thread      245.00          29.606.50
+
+
+* 参考文献
+** http://www.jb51.net/article/130927.htm
