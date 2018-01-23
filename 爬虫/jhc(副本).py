@@ -4,7 +4,7 @@
 import urllib.request
 import os
 from pyquery import PyQuery as pq
-from lxml import etree 
+from lxml import etree
 import multiprocessing
 
 #  d = pq("http://www.meizitu.com/")
@@ -12,6 +12,7 @@ import multiprocessing
 #  geta = etree.HTML(str(a))
 #  result = geta.xpath('//a/@href')
 #  print(result)
+
 
 class MeiZi:
 
@@ -22,13 +23,13 @@ class MeiZi:
         self.imgpages = []
 
     def getHtml(self, url):
-        headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
-            'Accept':'text/html;q=0.9,*/*;q=0.8',
-            'Accept-Charset':'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
-            'Accept-Encoding':'gzip',
-            'Connection':'close',
-            'Referer':'http://www.meizitu.com/' 
-        }
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+                   'Accept': 'text/html;q=0.9,*/*;q=0.8',
+                   'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+                   'Accept-Encoding': 'gzip',
+                   'Connection': 'close',
+                   'Referer': 'http://www.meizitu.com/'
+                   }
         req = urllib.request.Request(url=url, headers=headers)
         res = urllib.request.urlopen(req)
         data = res.read()
@@ -44,48 +45,50 @@ class MeiZi:
         data = self.getHtml(url)
         data = data.decode('gbk')
         html = pq(str(data))
-        div_pic = html('div').attr('id','picture')('p')
+        div_pic = html('div').attr('id', 'picture')('p')
         html2 = etree.HTML(str(div_pic))
         result = html2.xpath('//img/@alt')
         result = self.limitNum(result)
         img = html2.xpath('//img/@src')
         img = self.limitNum(img)
         imgdata = {}
-        m = len(img) 
+        m = len(img)
         for i in range(0, m):
-            imgdata[result[i]]=img[i]
+            imgdata[result[i]] = img[i]
         return imgdata
 
     def limitNum(self, data):
-        if len(data) > 10:
-            data = data[:10]
-        return data
-    
+        return data[:10]
+
     def handleA(self, url):
         html = etree.HTML(str(self.getA(url)))
         data = html.xpath('//a/@href')
+        return [re.compile(row, 'www.meizitu.com/a/') for row in data]
+
+
+"""
         L = []
         for row in data:
             if 'www.meizitu.com/a/' in row:
                 L.append(row)
         return L
+"""
 
     def getProcess(self, name, function, parameter):
-        theprocess = multiprocessing.Process(name=name, target=function, args=(parameter,))
+        theprocess = multiprocessing.Process(
+            name=name, target=function, args=(parameter,))
         theprocess.start()
 
     def dire(self, path):
         path = path.strip()
         isExists = os.path.exists(path)
         if not isExists:
-            print('正在创建 ',path,' 文件夹')
+            print('正在创建 ', path, ' 文件夹')
             os.makedirs(path)
-#          else:
-#              print('名为',path,'的文件夹已经创建')
 
     def writeData(self, url):
         imgdata = self.getData(url)
-        for row in imgdata: 
+        for row in imgdata:
             # file = row[:-4]
             file = row.split('，')[0]
             self.dire(file)
@@ -94,7 +97,7 @@ class MeiZi:
             filename = row
             with open(file + '/' + filename + '.jpg', 'wb') as f:
                 f.write(data)
-                print('图片',filename,'已下载')
+                print('图片', filename, '已下载')
 
     # 执行url列表遍历获取图片
     def handleData(self, urls):
@@ -114,21 +117,23 @@ class MeiZi:
             for i in theurls:
                 self.L2.append(i)
                 n += 1
-                if n%3 == 0:
-                    self.getProcess('分离页面第三次分工'+str(n), self.handleData, self.L2)
+                if n % 3 == 0:
+                    self.getProcess('分离页面第三次分工' + str(n),
+                                    self.handleData, self.L2)
                     print('分离页面第三次分工', self.L2)
                     self.L2 = []
-            
+
     # 第一步骤的页面
     def Main(self):
-        for i in range(1,5):
-#        for i in range(1,65):
-            url = self.mainurl%(str(i))
+        for i in range(1, 5):
+            #        for i in range(1,65):
+            url = self.mainurl % (str(i))
             self.L.append(url)
-            if i%3 == 0:
-                self.getProcess('分离页面'+str(i), self.handleMainData, self.L)
-                print('开始分离页面',i, self.L)
+            if i % 3 == 0:
+                self.getProcess('分离页面' + str(i), self.handleMainData, self.L)
+                print('开始分离页面', i, self.L)
                 self.L = []
+
 
 if __name__ == '__main__':
     mz = MeiZi()
