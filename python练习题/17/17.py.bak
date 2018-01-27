@@ -1,0 +1,53 @@
+#!/usr/bin/python
+from xml.etree import ElementTree as etree
+from xml.etree.ElementTree import Element,SubElement,ElementTree,Comment
+import xlrd
+import sys
+from xml.dom import minidom
+
+def Indent(dom,node,indent = 0):
+    children = node.childNodes[:]
+    if indent:
+        text = dom.createTextNode('\n' + '\t' * indent)
+        node.parentNode.insertBefore(text,node)
+    if children:
+        if children[-1].nodeType == node.ELEMENT_NODE:
+            text = dom.createTextNode('\n' + '\t' * indent)
+            node.appendChild(text)
+        for n in children:
+            if n.nodeType == node.ELEMENT_NODE:
+                Indent(dom,n,indent + 1)
+
+def read_xls():
+##  read the xls's file,unimportant
+
+    workbook = xlrd.open_workbook("student.xls")
+    sheet1 = workbook.sheet_by_index(0)
+    xml_str = ""
+    for i in range(0,sheet1.nrows):
+        cache = sheet1.row_values(i) 
+        xml_str =  '\t' + xml_str + str(cache[1:]) + "\n"
+    return xml_str
+
+
+def write_xml(xml_str):
+    root = Element('root')
+    student = SubElement(root,'student')
+    i = 2
+    ## Comment
+    student.append(Comment("student's info\n" + '\t' * i +"\"id\":[name,math,chinese,english]"))
+
+    student.text = str(xml_str)
+    xml_string = etree.tostring(root)   
+    tree = minidom.parseString(xml_string)
+
+    Indent(tree,tree.documentElement)
+    xml_string = tree.toprettyxml()
+    
+    print (xml_string)
+
+
+if __name__ == '__main__':
+    xml_str = read_xls()
+    write_xml(xml_str)
+
