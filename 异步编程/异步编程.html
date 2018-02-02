@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>异步编程</title>
+<!-- 2018-02-02 五 14:41 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="yujmo" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">异步编程</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. 异步编程</a></li>
+<li><a href="#sec-2">2. 上篇</a>
+<ul>
+<li><a href="#sec-2-1">2.1. 什么是异步编程</a>
+<ul>
+<li><a href="#sec-2-1-1">2.1.1. 阻塞</a></li>
+<li><a href="#sec-2-1-2">2.1.2. 非阻塞</a></li>
+<li><a href="#sec-2-1-3">2.1.3. 同步</a></li>
+<li><a href="#sec-2-1-4">2.1.4. 异步</a></li>
+<li><a href="#sec-2-1-5">2.1.5. 并发</a></li>
+<li><a href="#sec-2-1-6">2.1.6. 并行</a></li>
+<li><a href="#sec-2-1-7">2.1.7. 概念总结</a></li>
+<li><a href="#sec-2-1-8">2.1.8. 异步编程</a></li>
+<li><a href="#sec-2-1-9">2.1.9. 异步之难</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-2">2.2. 多进程与多线程的缺点</a>
+<ul>
+<li><a href="#sec-2-2-1">2.2.1. 多进程</a></li>
+<li><a href="#sec-2-2-2">2.2.2. 多线程</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-3">2.3. 非阻塞方式</a></li>
+<li><a href="#sec-2-4">2.4. 非阻塞改进</a>
+<ul>
+<li><a href="#sec-2-4-1">2.4.1. epoll</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-5">2.5. 回调(Callback)</a></li>
+<li><a href="#sec-2-6">2.6. 事件循环(Event Loop)</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 异步编程</h2>
+<div class="outline-text-2" id="text-1">
+<pre class="example">
+- 内容安排：
+
++ 上篇
+
+    - 了解 异步编程及其紧密相关的概念，如阻塞/非阻塞、同步/异步、并发/并行等
+    - 理解 异步编程是什么，以及异步编程的困难之处
+    - 理解 为什么需要异步编程
+    - 熟悉 如何从同步阻塞发展到异步非阻塞的
+    - 掌握epoll + Callback + Event loop是如何工作的
+    - 掌握 Python 是如何逐步从回调到生成器再到原生协程以支持异步编程的
+    - 掌握 asyncio 的工作原理
+
++ 中篇
+
+    - 掌握 asyncio 标准库基本使用
+    - 掌握 asyncio 的事件循环
+    - 掌握 协程与任务如何使用与管理（如调度与取消调度）
+    - 掌握 同步原语的使用(Lock、Event、Condition、Queue)
+    - 掌握 asyncio 和多进程、多线程结合使用
+
++ 下篇
+
+    - 理解 GIL 对异步编程的影响
+    - 理解 asyncio 踩坑经验
+    - 理解 回调、协程、绿程(Green-Thread)、线程对比总结
+    - 掌握 多进程、多线程、协程各自的适用场景
+    - 了解 Gevent/libev、uvloop/libuv 与asyncio的区别和联系
+    - 掌握 Python异步编程的一些指导细则
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> 上篇</h2>
+<div class="outline-text-2" id="text-2">
+</div><div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> 什么是异步编程</h3>
+<div class="outline-text-3" id="text-2-1">
+</div><div id="outline-container-sec-2-1-1" class="outline-4">
+<h4 id="sec-2-1-1"><span class="section-number-4">2.1.1</span> 阻塞</h4>
+<div class="outline-text-4" id="text-2-1-1">
+<ul class="org-ul">
+<li>程序未得到所需计算资源时被挂起的状态。
+</li>
+
+<li>程序在等待某个操作完成期间，自身无法继续干别的事情，则称该程序在该操作上是阻塞的。
+</li>
+
+<li>常见的阻塞形式有：网络I/O阻塞、磁盘I/O阻塞、用户输入阻塞等。
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-2-1-2" class="outline-4">
+<h4 id="sec-2-1-2"><span class="section-number-4">2.1.2</span> 非阻塞</h4>
+<div class="outline-text-4" id="text-2-1-2">
+<ul class="org-ul">
+<li>程序在等待某操作过程中，自身不被阻塞，可以继续运行干别的事情，则称该程序在该操作上是非阻塞的。
+</li>
+
+<li>非阻塞并不是在任何程序级别、任何情况下都可以存在的。
+</li>
+
+<li>仅当程序封装的级别可以囊括独立的子程序单元时，它才可能存在非阻塞状态。
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-2-1-3" class="outline-4">
+<h4 id="sec-2-1-3"><span class="section-number-4">2.1.3</span> 同步</h4>
+<div class="outline-text-4" id="text-2-1-3">
+<ul class="org-ul">
+<li>不同程序单元为了完成某个任务，在执行过程中需靠某种通信方式以协调一致，称这些程序单元是同步执行的。
+</li>
+
+<li>例如购物系统中更新商品库存，需要用“行锁”作为通信信号，让不同的更新请求强制排队顺序执行，那更新库存的操作是同步的。
+</li>
+
+<li>同步意味着有序。
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-2-1-4" class="outline-4">
+<h4 id="sec-2-1-4"><span class="section-number-4">2.1.4</span> 异步</h4>
+<div class="outline-text-4" id="text-2-1-4">
+<ul class="org-ul">
+<li>为完成某个任务，不同程序单元之间过程中无需通信协调，也能完成任务的方式。
+</li>
+
+<li>不相关的程序单元之间可以是异步的。
+</li>
+
+<li>例如，爬虫下载网页。调度程序调用下载程序后，即可调度其他任务，而无需与该下载任务保持通信以协调行为。不同网页的下载、保存等操作都是无关的，也无需相互通知协调。这些异步操作的完成时刻并不确定。
+</li>
+
+<li>简言之，异步意味着无序。
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-2-1-5" class="outline-4">
+<h4 id="sec-2-1-5"><span class="section-number-4">2.1.5</span> 并发</h4>
+<div class="outline-text-4" id="text-2-1-5">
+<ul class="org-ul">
+<li>并发描述的是程序的组织结构。指程序要被设计成多个可独立执行的子任务。
+</li>
+
+<li>以利用有限的计算机资源使多个任务可以被实时或近实时执行为目的。
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-2-1-6" class="outline-4">
+<h4 id="sec-2-1-6"><span class="section-number-4">2.1.6</span> 并行</h4>
+<div class="outline-text-4" id="text-2-1-6">
+<ul class="org-ul">
+<li>并行描述的是程序的执行状态。指多个任务同时被执行。
+</li>
+
+<li>以利用富余计算资源（多核CPU）加速完成多个任务为目的。
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-2-1-7" class="outline-4">
+<h4 id="sec-2-1-7"><span class="section-number-4">2.1.7</span> 概念总结</h4>
+<div class="outline-text-4" id="text-2-1-7">
+<ul class="org-ul">
+<li>并行是为了利用多核加速多任务完成的进度
+</li>
+<li>并发是为了让独立的子任务都有机会被尽快执行，但不一定能加速整体进度
+</li>
+<li>非阻塞是为了提高程序整体执行效率
+</li>
+<li>异步是高效地组织非阻塞任务的方式
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-2-1-8" class="outline-4">
+<h4 id="sec-2-1-8"><span class="section-number-4">2.1.8</span> 异步编程</h4>
+<div class="outline-text-4" id="text-2-1-8">
+<p>
+    以进程、线程、协程、函数/方法作为执行任务程序的基本单位，结合回调、事件循环、信号量等机制，
+以提高程序整体执行效率和并发能力的编程方式。如果在某程序的运行时，能根据已经执行的指令准确判断
+它接下来要进行哪个具体操作，那它是同步程序，反之则为异步程序。（无序与有序的区别）
+同步/异步、阻塞/非阻塞并非水火不容，要看讨论的程序所处的封装级别。
+例如购物程序在处理多个用户的浏览请求可以是异步的，而更新库存时必须是同步的。
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-1-9" class="outline-4">
+<h4 id="sec-2-1-9"><span class="section-number-4">2.1.9</span> 异步之难</h4>
+<div class="outline-text-4" id="text-2-1-9">
+<ul class="org-ul">
+<li>控制不住写的程序，因为其执行顺序不可预料，当下正要发生什么事件不可预料。在并行情况下更为复杂和艰难。
+</li>
+
+<li>几乎所有的异步框架都将异步编程模型简化：一次只允许处理一个事件。故而有关异步的讨论几乎都集中在了单线程内。
+</li>
+
+<li>如果某事件处理程序需要长时间执行，所有其他部分都会被阻塞。
+</li>
+
+<li>所以，一旦采取异步编程，每个异步调用必须“足够小”，不能耗时太久。如何拆分异步任务成了难题。
+</li>
+
+<li>程序下一步行为往往依赖上一步执行结果，如何知晓上次异步调用已完成并获取结果？
+</li>
+
+<li>回调（Callback）成了必然选择。那又需要面临“回调地狱”的折磨。
+</li>
+
+<li>同步代码改为异步代码，必然破坏代码结构。
+</li>
+
+<li>解决问题的逻辑也要转变，不再是一条路走到黑，需要精心安排异步任务。
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> 多进程与多线程的缺点</h3>
+<div class="outline-text-3" id="text-2-2">
+</div><div id="outline-container-sec-2-2-1" class="outline-4">
+<h4 id="sec-2-2-1"><span class="section-number-4">2.2.1</span> 多进程</h4>
+<div class="outline-text-4" id="text-2-2-1">
+<ul class="org-ul">
+<li>进程切换的开销
+</li>
+
+<li>进程数量不能过多
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2-2" class="outline-4">
+<h4 id="sec-2-2-2"><span class="section-number-4">2.2.2</span> 多线程</h4>
+<div class="outline-text-4" id="text-2-2-2">
+<ul class="org-ul">
+<li>一个Python进程中，只允许有一个线程处于运行状态
+</li>
+
+<li>GIL
+</li>
+
+<li>多线程最主要的问题还是竞态条件
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-sec-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> 非阻塞方式</h3>
+<div class="outline-text-3" id="text-2-3">
+
+<div class="figure">
+<p><img src="非阻塞1.png" alt="非阻塞1.png" />
+</p>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-sec-2-4" class="outline-3">
+<h3 id="sec-2-4"><span class="section-number-3">2.4</span> 非阻塞改进</h3>
+<div class="outline-text-3" id="text-2-4">
+</div><div id="outline-container-sec-2-4-1" class="outline-4">
+<h4 id="sec-2-4-1"><span class="section-number-4">2.4.1</span> epoll</h4>
+<div class="outline-text-4" id="text-2-4-1">
+<ul class="org-ul">
+<li>select模块：os将I/O状态的变化都封装成了事件，如可读事件、可写事件。并且提供了专门的系统模块让应用程序可以接收事件通知。
+</li>
+
+<li>应用程序通过select注册文件描述符和回调函数，当文件描述符的状态发生变化时，select 就调用事先注册的回调函数。
+</li>
+
+<li>Linux服务器使用epoll，效率高
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-sec-2-5" class="outline-3">
+<h3 id="sec-2-5"><span class="section-number-3">2.5</span> 回调(Callback)</h3>
+<div class="outline-text-3" id="text-2-5">
+
+<div class="figure">
+<p><img src="非阻塞2.png" alt="非阻塞2.png" />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-6" class="outline-3">
+<h3 id="sec-2-6"><span class="section-number-3">2.6</span> 事件循环(Event Loop)</h3>
+<div class="outline-text-3" id="text-2-6">
+<ul class="org-ul">
+<li>写一个循环，访问selector模块，等待selector模块告诉我们当前哪个事件发生了，对应
+那个回调。等待事件通知的循环，成为事件循环。
+</li>
+</ul>
+<p>
+<i>事件循环1.png</i>
+</p>
+
+<p>
+<i>事件循环2.png</i>
+</p>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: yujmo</p>
+<p class="date">Created: 2018-02-02 五 14:41</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 25.3.1 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
